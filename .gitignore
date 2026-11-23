@@ -1,0 +1,38 @@
+# Runtime Sentinel — .gitignore
+# NOTE: do NOT ignore /.kiro — Kiroween rules require it to be present in the repo.
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# SQLite / ledger artifacts (regenerated)
+*.db
+*.db-wal
+*.db-shm
+*.ledger
+evidence/*.db
+
+# Rust
+target/
+Cargo.lock
+
+# Build / binaries
+*.exe
+*.out
+build/
+dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+hs_err_pid*.log
+replay_pid*.log
