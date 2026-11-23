@@ -1,0 +1,12 @@
+name: sentinel-post-build
+description: Regenerate benchmark baselines after build.
+
+steps:
+  - name: latency-benchmark
+    command: python benchmark/latency_test.py
+    fail_on_error: false
+    threshold: "p99 < 100000 ns"
+
+  - name: evidence-count
+    command: python -c "from src.evidence_ledger.ledger import EvidenceLedger; l=EvidenceLedger('evidence.db'); print('Records:', l.count()); l.close()"
+    fail_on_error: false

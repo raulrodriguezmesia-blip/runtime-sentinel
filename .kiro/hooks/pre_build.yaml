@@ -1,0 +1,15 @@
+name: sentinel-pre-build
+description: Run PBT and chain verification before every build.
+
+steps:
+  - name: property-based-tests
+    command: python -m pytest tests/test_chain.py -q
+    fail_on_error: true
+
+  - name: chain-verification
+    command: python src/cli/sentinel.py --db evidence.db verify
+    fail_on_error: true
+
+  - name: policy-decay-tests
+    command: python -m pytest tests/test_chain.py -k "decay" -q
+    fail_on_error: true
