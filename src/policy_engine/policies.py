@@ -111,6 +111,17 @@ DEFAULT_POLICIES = [
         priority=80,
     ),
     Policy(
+        policy_id="POL-TEMP-SAFETY-OVERRIDE",
+        description="Temporary safety override (expires 2026-12-15)",
+        match_actor="vehicle.agent",
+        match_action="emergency_stop",
+        match_resource="brake_*",
+        decision="ALLOW",
+        priority=150,
+        valid_from="2026-11-23",
+        valid_until="2026-12-15",
+    ),
+    Policy(
         policy_id="POL-DEFAULT-DENY",
         description="Default deny for unmatched actions",
         match_actor="*",

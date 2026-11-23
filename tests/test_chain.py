@@ -90,7 +90,6 @@ def test_tampering_breaks_chain():
     try:
         d = engine.evaluate("vehicle.agent", "brake_apply", "brake_front")
         ledger.record("vehicle.agent", "brake_apply", "brake_front", d.matched_policy, d.decision, d.latency_ns)
-        # Tamper: modify the entry_hash in SQLite
         conn = sqlite3.connect(path)
         conn.execute("UPDATE evidence SET entry_hash = 'tampered' WHERE id = 1")
         conn.commit()
@@ -102,6 +101,45 @@ def test_tampering_breaks_chain():
         assert "TAMPERING" in msg
         ledger2.close()
     finally:
+        os.unlink(path)
+
+
+def test_policy_decay_active():
+    """Active policy authorizes action before expiry."""
+    engine = PolicyEngine(policies=DEFAULT_POLICIES, now_date="2026-11-23")
+    r = engine.evaluate("vehicle.agent", "emergency_stop", "brake_front")
+    assert r.is_allow
+    assert r.matched_policy == "POL-TEMP-SAFETY-OVERRIDE"
+
+
+def test_policy_decay_expired():
+    """Expired policy falls back to DENY."""
+    engine = PolicyEngine(policies=DEFAULT_POLICIES, now_date="2026-12-20")
+    r = engine.evaluate("vehicle.agent", "emergency_stop", "brake_front")
+    assert r.is_deny
+    assert r.matched_policy == "POL-DEFAULT-DENY"
+
+
+def test_historical_evidence_preserved_after_decay():
+    """Historical evidence remains verifiable after policy expiry."""
+    fd, path = tempfile.mkstemp(suffix=".db")
+    os.close(fd)
+    os.unlink(path)
+    engine_active = PolicyEngine(policies=DEFAULT_POLICIES, now_date="2026-11-23")
+    ledger = EvidenceLedger(path)
+    try:
+        d = engine_active.evaluate("vehicle.agent", "emergency_stop", "brake_front")
+        ledger.record("vehicle.agent", "emergency_stop", "brake_front", d.matched_policy, d.decision, d.latency_ns)
+        # Policy now expired, but evidence remains
+        verified, msg = ledger.verify_chain()
+        assert verified is True
+        assert "VERIFIED" in msg
+        # Historical record still has original policy
+        row = ledger.get_by_id(1)
+        assert row["policy_id"] == "POL-TEMP-SAFETY-OVERRIDE"
+        assert row["decision"] == "ALLOW"
+    finally:
+        ledger.close()
         os.unlink(path)
 
 
