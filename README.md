@@ -4,6 +4,11 @@
 
 > Runtime Sentinel does not ask developers to trust AI decisions. It generates verifiable evidence for every decision.
 
+## Demo
+
+- **Video:** Coming soon
+- **Repository:** https://github.com/raulrodriguezmesia-blip/runtime-sentinel
+
 ---
 
 ## The Problem
